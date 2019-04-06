@@ -59,7 +59,7 @@ class OggSyncWriteWorker : public Nan::AsyncWorker {
 
     v8::Local<Value> argv[1] = { Nan::New<Integer>(rtn) };
 
-    callback->Call(1, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 1, argv);
   }
  private:
   ogg_sync_state *oy;
@@ -73,7 +73,7 @@ NAN_METHOD(node_ogg_sync_write) {
 
   ogg_sync_state *oy = reinterpret_cast<ogg_sync_state *>(UnwrapPointer(info[0]));
   char *buffer = reinterpret_cast<char *>(UnwrapPointer(info[1]));
-  long size = static_cast<long>(info[2]->NumberValue());
+  long size = static_cast<long>(Nan::To<uint32_t>(info[2]).FromJust());
   Nan::Callback *callback = new Nan::Callback(info[3].As<Function>());
 
   Nan::AsyncQueueWorker(new OggSyncWriteWorker(oy, buffer, size, callback));
@@ -102,7 +102,7 @@ class OggSyncPageoutWorker : public Nan::AsyncWorker {
       Nan::New<Integer>(packets)
     };
 
-    callback->Call(3, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 3, argv);
   }
  private:
   ogg_sync_state *oy;
@@ -125,7 +125,7 @@ NAN_METHOD(node_ogg_sync_pageout) {
 NAN_METHOD(node_ogg_stream_init) {
   Nan::HandleScope scope;
   ogg_stream_state *os = reinterpret_cast<ogg_stream_state *>(UnwrapPointer(info[0]));
-  int serialno = static_cast<int>(info[1]->IntegerValue());
+  int serialno = static_cast<int>(Nan::To<uint32_t>(info[1]).FromJust());
   info.GetReturnValue().Set(Nan::New<Integer>(ogg_stream_init(os, serialno)));
 }
 
@@ -143,7 +143,7 @@ class OggStreamPageinWorker : public Nan::AsyncWorker {
 
     v8::Local<Value> argv[1] = { Nan::New<Integer>(rtn) };
 
-    callback->Call(1, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 1, argv);
   }
  private:
   ogg_stream_state *os;
@@ -190,7 +190,7 @@ class OggStreamPacketoutWorker : public Nan::AsyncWorker {
       argv[5] = Nan::Null();
     }
 
-    callback->Call(6, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 6, argv);
   }
  private:
   ogg_stream_state *os;
@@ -223,7 +223,7 @@ class OggStreamPacketinWorker : public Nan::AsyncWorker {
 
     v8::Local<Value> argv[1] = { Nan::New<Integer>(rtn) };
 
-    callback->Call(1, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 1, argv);
   }
  private:
   ogg_stream_state *os;
@@ -264,7 +264,7 @@ class StreamWorker : public Nan::AsyncWorker {
       argv[3] = Nan::New<Integer>(ogg_page_eos(page));
     }
 
-    callback->Call(4, argv);
+    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 4, argv);
   }
  protected:
   ogg_stream_state *os;
@@ -401,7 +401,7 @@ NAN_MODULE_INIT(Initialize) {
 
   /* sizeof's */
 #define SIZEOF(value) \
-  Nan::ForceSet(target, Nan::New<String>("sizeof_" #value).ToLocalChecked(), \
+  Nan::DefineOwnProperty(target, Nan::New<String>("sizeof_" #value).ToLocalChecked(), \
       Nan::New<Integer>(static_cast<int32_t>(sizeof(value))), \
       static_cast<PropertyAttribute>(ReadOnly|DontDelete))
   SIZEOF(ogg_sync_state);
@@ -430,8 +430,9 @@ NAN_MODULE_INIT(Initialize) {
   Nan::SetMethod(target, "ogg_packet_e_o_s", node_ogg_packet_e_o_s);
   Nan::SetMethod(target, "ogg_packet_granulepos", node_ogg_packet_granulepos);
   Nan::SetMethod(target, "ogg_packet_packetno", node_ogg_packet_packetno);
-  Nan::Set(target, Nan::New<String>("ogg_packet_replace_buffer").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(node_ogg_packet_replace_buffer)->GetFunction());
+  Nan::SetMethod(target, "ogg_packet_replace_buffer", node_ogg_packet_replace_buffer);
+  // Nan::Set(target, Nan::New<String>("ogg_packet_replace_buffer").ToLocalChecked(),
+    //Nan::New<FunctionTemplate>(node_ogg_packet_replace_buffer)->GetFunction());
 
 }
 
