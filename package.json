@@ -8,7 +8,7 @@
     "decode",
     "stream"
   ],
-  "version": "1.2.5",
+  "version": "1.2.6",
   "license": "MIT",
   "author": "Nathan Rajlich <nathan@tootallnate.net> (http://tootallnate.net)",
   "repository": {
@@ -23,8 +23,8 @@
     "readable-stream": "1.0"
   },
   "devDependencies": {
-    "mocha": "*",
-    "ogg-packet": "1"
+    "mocha": "^3.5.3",
+    "ogg-packet": "^1.0.0"
   },
   "scripts": {
     "test": "mocha --reporter spec"
